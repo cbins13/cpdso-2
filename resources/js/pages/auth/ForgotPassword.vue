@@ -17,8 +17,8 @@ defineProps<{
 
 <template>
     <AuthLayout
-        title="Forgot password"
-        description="Enter your email to receive a password reset link"
+        title="Credential recovery"
+        description="Enter your registered email address to receive a secure password reset link"
     >
         <Head title="Forgot password" />
 

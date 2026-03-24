@@ -14,10 +14,10 @@ import { store } from '@/routes/register';
 
 <template>
     <AuthBase
-        title="Create an account"
-        description="Enter your details below to create your account"
+        title="Create a CPDSO account"
+        description="Provide the required information to register a secure enterprise account"
     >
-        <Head title="Register" />
+        <Head title="Create account" />
 
         <Form
             v-bind="store.form()"

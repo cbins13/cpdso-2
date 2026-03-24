@@ -12,7 +12,7 @@ import { store } from '@/routes/password/confirm';
 <template>
     <AuthLayout
         title="Confirm your password"
-        description="This is a secure area of the application. Please confirm your password before continuing."
+        description="This operation requires password confirmation before the request can proceed."
     >
         <Head title="Confirm password" />
 

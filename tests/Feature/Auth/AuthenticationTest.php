@@ -20,8 +20,9 @@ test('users can authenticate using the login screen', function () {
         'password' => 'password',
     ]);
 
-    $this->assertAuthenticated();
-    $response->assertRedirect(route('dashboard', absolute: false));
+    $this->assertGuest();
+    $response->assertRedirect(route('auth.otp.challenge', absolute: false));
+    $response->assertSessionHas('auth_otp.pending_user_id', $user->id);
 });
 
 test('users with two factor enabled are redirected to two factor challenge', function () {
@@ -45,8 +46,8 @@ test('users with two factor enabled are redirected to two factor challenge', fun
         'password' => 'password',
     ]);
 
-    $response->assertRedirect(route('two-factor.login'));
-    $response->assertSessionHas('login.id', $user->id);
+    $response->assertRedirect(route('auth.otp.challenge'));
+    $response->assertSessionHas('auth_otp.pending_user_id', $user->id);
     $this->assertGuest();
 });
 

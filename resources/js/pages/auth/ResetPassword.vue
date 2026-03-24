@@ -20,8 +20,8 @@ const inputEmail = ref(props.email);
 
 <template>
     <AuthLayout
-        title="Reset password"
-        description="Please enter your new password below"
+        title="Reset account password"
+        description="Enter and confirm a new password to restore secure access"
     >
         <Head title="Reset password" />
 

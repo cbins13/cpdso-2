@@ -23,11 +23,12 @@ test('security page is displayed', function () {
         ->assertInertia(fn (Assert $page) => $page
             ->component('settings/Security')
             ->where('canManageTwoFactor', true)
+            ->where('isGoogleOnly', false)
             ->where('twoFactorEnabled', false),
         );
 });
 
-test('security page requires password confirmation when enabled', function () {
+test('security page is accessible without password-confirm redirect', function () {
     $this->skipUnlessFortifyFeature(Features::twoFactorAuthentication());
 
     $user = User::factory()->create();
@@ -37,10 +38,45 @@ test('security page requires password confirmation when enabled', function () {
         'confirmPassword' => true,
     ]);
 
-    $response = $this->actingAs($user)
-        ->get(route('security.edit'));
+    $this->actingAs($user)
+        ->withSession(['auth.password_confirmed_at' => time()])
+        ->get(route('security.edit'))
+        ->assertOk();
+    });
 
-    $response->assertRedirect(route('password.confirm'));
+test('security page flags google-only accounts', function () {
+    $this->skipUnlessFortifyFeature(Features::twoFactorAuthentication());
+
+    $user = User::factory()->create([
+        'password' => null,
+        'google_id' => 'google-123',
+    ]);
+
+    $this->actingAs($user)
+        ->withSession(['auth.password_confirmed_at' => time()])
+        ->get(route('security.edit'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('settings/Security')
+            ->where('isGoogleOnly', true),
+        );
+});
+
+test('security page flags password users as non-google-only', function () {
+    $this->skipUnlessFortifyFeature(Features::twoFactorAuthentication());
+
+    $user = User::factory()->create([
+        'google_id' => 'google-456',
+    ]);
+
+    $this->actingAs($user)
+        ->withSession(['auth.password_confirmed_at' => time()])
+        ->get(route('security.edit'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('settings/Security')
+            ->where('isGoogleOnly', false),
+        );
 });
 
 test('security page does not require password confirmation when disabled', function () {

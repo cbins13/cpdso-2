@@ -4,8 +4,9 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Str;
+use App\Services\EmailOtpService;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Laravel\Socialite\Facades\Socialite;
 
 class SocialAuthController extends Controller
@@ -15,7 +16,7 @@ class SocialAuthController extends Controller
         return Socialite::driver('google')->redirect();
     }
 
-    public function handleGoogleCallback()
+    public function handleGoogleCallback(Request $request, EmailOtpService $emailOtpService): RedirectResponse
     {
         $googleUser = Socialite::driver('google')->user();
 
@@ -39,8 +40,22 @@ class SocialAuthController extends Controller
             }
         }
 
-        Auth::login($user, remember: true);
+        $emailOtpService->issue(
+            user: $user,
+            purpose: 'login',
+            action: 'issue',
+            ipAddress: $request->ip(),
+            userAgent: $request->userAgent(),
+            meta: ['provider' => 'google'],
+        );
 
-        return redirect()->intended(config('fortify.home', '/dashboard'));
+        $request->session()->put([
+            'auth_otp.pending_user_id' => $user->id,
+            'auth_otp.pending_remember' => true,
+            'auth_otp.pending_purpose' => 'login',
+            'auth_otp.pending_email' => $user->email,
+        ]);
+
+        return to_route('auth.otp.challenge')->with('status', 'otp-sent');
     }
 }

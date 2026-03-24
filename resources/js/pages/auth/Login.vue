@@ -22,10 +22,10 @@ defineProps<{
 
 <template>
     <AuthBase
-        title="Log in to your account"
-        description="Enter your email and password below to log in"
+        title="Sign in to CPDSO"
+        description="Enter your registered credentials to access the CPDSO workspace"
     >
-        <Head title="Log in" />
+        <Head title="Sign in" />
 
         <div
             v-if="status"

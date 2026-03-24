@@ -21,12 +21,14 @@ type Props = {
     canManageTwoFactor?: boolean;
     requiresConfirmation?: boolean;
     twoFactorEnabled?: boolean;
+    isGoogleOnly?: boolean;
 };
 
 withDefaults(defineProps<Props>(), {
     canManageTwoFactor: false,
     requiresConfirmation: false,
     twoFactorEnabled: false,
+    isGoogleOnly: false,
 });
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -57,6 +59,7 @@ onUnmounted(() => clearTwoFactorAuthData());
                 />
 
                 <Form
+                    v-if="!isGoogleOnly"
                     v-bind="SecurityController.update.form()"
                     :options="{
                         preserveScroll: true,
@@ -70,6 +73,10 @@ onUnmounted(() => clearTwoFactorAuthData());
                     class="space-y-6"
                     v-slot="{ errors, processing, recentlySuccessful }"
                 >
+                    <p class="sr-only" aria-live="polite" role="status">
+                        {{ recentlySuccessful ? 'Password updated successfully.' : '' }}
+                    </p>
+
                     <div class="grid gap-2">
                         <Label for="current_password">Current password</Label>
                         <PasswordInput
@@ -78,8 +85,15 @@ onUnmounted(() => clearTwoFactorAuthData());
                             class="mt-1 block w-full"
                             autocomplete="current-password"
                             placeholder="Current password"
+                            :aria-invalid="errors.current_password ? 'true' : 'false'"
+                            :aria-describedby="errors.current_password ? 'current_password_error' : undefined"
                         />
-                        <InputError :message="errors.current_password" />
+                        <InputError
+                            id="current_password_error"
+                            :message="errors.current_password"
+                            role="alert"
+                            live="assertive"
+                        />
                     </div>
 
                     <div class="grid gap-2">
@@ -90,8 +104,15 @@ onUnmounted(() => clearTwoFactorAuthData());
                             class="mt-1 block w-full"
                             autocomplete="new-password"
                             placeholder="New password"
+                            :aria-invalid="errors.password ? 'true' : 'false'"
+                            :aria-describedby="errors.password ? 'password_error' : undefined"
                         />
-                        <InputError :message="errors.password" />
+                        <InputError
+                            id="password_error"
+                            :message="errors.password"
+                            role="alert"
+                            live="assertive"
+                        />
                     </div>
 
                     <div class="grid gap-2">
@@ -104,8 +125,15 @@ onUnmounted(() => clearTwoFactorAuthData());
                             class="mt-1 block w-full"
                             autocomplete="new-password"
                             placeholder="Confirm password"
+                            :aria-invalid="errors.password_confirmation ? 'true' : 'false'"
+                            :aria-describedby="errors.password_confirmation ? 'password_confirmation_error' : undefined"
                         />
-                        <InputError :message="errors.password_confirmation" />
+                        <InputError
+                            id="password_confirmation_error"
+                            :message="errors.password_confirmation"
+                            role="alert"
+                            live="assertive"
+                        />
                     </div>
 
                     <div class="flex items-center gap-4">
@@ -131,6 +159,19 @@ onUnmounted(() => clearTwoFactorAuthData());
                         </Transition>
                     </div>
                 </Form>
+
+                <div
+                    v-else
+                    class="rounded-md border border-border bg-muted/40 p-4"
+                    role="status"
+                    aria-live="polite"
+                >
+                    <p class="text-sm text-muted-foreground">
+                        This account signs in with Google and does not have a
+                        password yet. Use Google sign-in, or set a password
+                        first.
+                    </p>
+                </div>
             </div>
 
             <div v-if="canManageTwoFactor" class="space-y-6">
