@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
-import { Box, LayoutGrid } from 'lucide-vue-next';
+import { Box, LayoutGrid, BarChart3 } from 'lucide-vue-next';
 import AppLogo from '@/components/AppLogo.vue';
 import NavMain from '@/components/NavMain.vue';
 import NavUser from '@/components/NavUser.vue';
@@ -26,6 +26,11 @@ const mainNavItems: NavItem[] = [
         title: 'Boxes',
         href: '/boxes',
         icon: Box,
+    },
+    {
+        title: 'Reports',
+        href: '/reports/items-by-box',
+        icon: BarChart3,
     },
 ];
 </script>

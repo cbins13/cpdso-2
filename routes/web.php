@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\BoxController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\Auth\EmailOtpController;
 use App\Http\Controllers\Auth\SocialAuthController;
 use Illuminate\Support\Facades\Route;
@@ -24,6 +25,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::patch('/items/{itemId}', [BoxController::class, 'updateItem'])->name('items.update');
     Route::delete('/items/{itemId}', [BoxController::class, 'destroyItem'])->name('items.destroy');
     Route::patch('/items/{itemId}/restore', [BoxController::class, 'restoreItem'])->name('items.restore');
+
+    Route::get('/reports/items-by-box', [ReportController::class, 'itemsByBoxAndOwner'])->name('reports.items-by-box');
+    Route::get('/reports/most-common-items', [ReportController::class, 'mostCommonItems'])->name('reports.most-common-items');
 });
 
 Route::get('/auth/google', [SocialAuthController::class, 'redirectToGoogle'])->name('auth.google');

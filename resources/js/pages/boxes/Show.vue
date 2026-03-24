@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Head, Link, useForm } from '@inertiajs/vue3';
+import { ref } from 'vue';
 import Heading from '@/components/Heading.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -45,10 +46,30 @@ function createItem() {
     });
 }
 
-function deleteItem(itemId: number) {
-    itemForm.delete(`/items/${itemId}`, {
+const editingItemId = ref<number | null>(null);
+const editItemForm = useForm({ name: '' });
+
+function startEditItem(item: Item) {
+    editingItemId.value = item.id;
+    editItemForm.name = item.name;
+}
+
+function cancelEditItem() {
+    editingItemId.value = null;
+    editItemForm.reset();
+}
+
+function updateItem(itemId: number) {
+    editItemForm.patch(`/items/${itemId}`, {
         preserveScroll: true,
+        onSuccess: () => { editingItemId.value = null; },
     });
+}
+
+const deleteItemForm = useForm({});
+
+function deleteItem(itemId: number) {
+    deleteItemForm.delete(`/items/${itemId}`, { preserveScroll: true });
 }
 </script>
 
@@ -87,18 +108,26 @@ function deleteItem(itemId: number) {
                 <div
                     v-for="item in items"
                     :key="item.id"
-                    class="flex items-center justify-between rounded-md border border-border p-4"
+                    class="rounded-md border border-border p-4"
                 >
-                    <p class="font-medium">{{ item.name }}</p>
-
-                    <Button
-                        type="button"
-                        variant="destructive"
-                        size="sm"
-                        @click="deleteItem(item.id)"
+                    <form
+                        v-if="editingItemId === item.id"
+                        @submit.prevent="updateItem(item.id)"
+                        class="flex items-center gap-2"
                     >
-                        Delete
-                    </Button>
+                        <Input v-model="editItemForm.name" class="flex-1" required autofocus />
+                        <Button type="submit" size="sm" :disabled="editItemForm.processing">Save</Button>
+                        <Button type="button" size="sm" variant="outline" @click="cancelEditItem">Cancel</Button>
+                        <p v-if="editItemForm.errors.name" class="text-sm text-destructive">{{ editItemForm.errors.name }}</p>
+                    </form>
+
+                    <div v-else class="flex items-center justify-between gap-4">
+                        <p class="font-medium">{{ item.name }}</p>
+                        <div class="flex items-center gap-2">
+                            <Button type="button" size="sm" variant="outline" @click="startEditItem(item)">Edit</Button>
+                            <Button type="button" size="sm" variant="destructive" :disabled="deleteItemForm.processing" @click="deleteItem(item.id)">Delete</Button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

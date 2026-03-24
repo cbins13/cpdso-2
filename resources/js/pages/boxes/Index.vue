@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Head, Link, useForm } from '@inertiajs/vue3';
+import { ref } from 'vue';
 import Heading from '@/components/Heading.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -35,6 +36,32 @@ function createBox() {
         onSuccess: () => createForm.reset(),
     });
 }
+
+const editingBoxId = ref<number | null>(null);
+const editForm = useForm({ name: '' });
+
+function startEdit(box: Box) {
+    editingBoxId.value = box.id;
+    editForm.name = box.name;
+}
+
+function cancelEdit() {
+    editingBoxId.value = null;
+    editForm.reset();
+}
+
+function updateBox(boxId: number) {
+    editForm.patch(`/boxes/${boxId}`, {
+        preserveScroll: true,
+        onSuccess: () => { editingBoxId.value = null; },
+    });
+}
+
+const deleteForm = useForm({});
+
+function deleteBox(boxId: number) {
+    deleteForm.delete(`/boxes/${boxId}`, { preserveScroll: true });
+}
 </script>
 
 <template>
@@ -68,16 +95,32 @@ function createBox() {
                 <div
                     v-for="box in boxes"
                     :key="box.id"
-                    class="flex items-center justify-between rounded-md border border-border p-4"
+                    class="rounded-md border border-border p-4"
                 >
-                    <div>
-                        <p class="font-medium">{{ box.name }}</p>
-                        <p class="text-xs text-muted-foreground">{{ box.items_count }} item(s)</p>
-                    </div>
+                    <form
+                        v-if="editingBoxId === box.id"
+                        @submit.prevent="updateBox(box.id)"
+                        class="flex items-center gap-2"
+                    >
+                        <Input v-model="editForm.name" class="flex-1" required autofocus />
+                        <Button type="submit" size="sm" :disabled="editForm.processing">Save</Button>
+                        <Button type="button" size="sm" variant="outline" @click="cancelEdit">Cancel</Button>
+                        <p v-if="editForm.errors.name" class="text-sm text-destructive">{{ editForm.errors.name }}</p>
+                    </form>
 
-                    <Link :href="`/boxes/${box.id}`" class="inline-flex items-center rounded-md border border-border px-3 py-2 text-sm hover:bg-muted">
-                        Open
-                    </Link>
+                    <div v-else class="flex items-center justify-between gap-4">
+                        <div>
+                            <p class="font-medium">{{ box.name }}</p>
+                            <p class="text-xs text-muted-foreground">{{ box.items_count }} item(s)</p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <Link :href="`/boxes/${box.id}`" class="inline-flex items-center rounded-md border border-border px-3 py-2 text-sm hover:bg-muted">
+                                Open
+                            </Link>
+                            <Button type="button" size="sm" variant="outline" @click="startEdit(box)">Edit</Button>
+                            <Button type="button" size="sm" variant="destructive" :disabled="deleteForm.processing" @click="deleteBox(box.id)">Delete</Button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
